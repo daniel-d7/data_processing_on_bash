@@ -63,5 +63,25 @@ echo "Top 10 profit"
 awk -F',' -v OFS=',' 'BEGIN{OFMT="%.3f"} NR==1 {print $0, "profit_adj"; next} {print $0, $21 - $20}' $TEMP_DIR/temp.csv >$TEMP_DIR/profit_adj.csv
 sort -t',' -k22,22 | awk -F',' 'NR <=11 {print $6, " - ", $20, $21, $22}' $TEMP_DIR/profit_adj.csv >$OUTPUT_DIR/top_10_profit.csv
 
+# Director with top movie quantity
+awk -F',' 'NR > 1 {arr[$9]++} END {for (a in arr) print a, arr[a]}' $TEMP_DIR/temp.csv >$TEMP_DIR/director_count.csv
+sort -t',' -k2,2 -r | awk -F',' 'NR <2 {print $0}' $TEMP_DIR/director_count.csv >$OUTPUT_DIR/director.csv
+sleep 3
+
+# Subset actors into a new file
+awk -F',' '{print $7}' $TEMP_DIR/temp.csv >$TEMP_DIR/actors.csv
+awk -F'|' '{for(i=1;i<=NF;i++) count[$i]++} END {for(name in count) print count[name], name}' $TEMP_DIR/actors.csv | sort -nr >$TEMP_DIR/actors_count.csv
+awk -F',' 'BEGIN{max=0} {if($1+0>max){max=$1; delete names; names[$2" - "$1" movies"]} else if($1+0==max){names[$2" - "$1" movies"]}} END{for(name in names) print name}' $TEMP_DIR/actors_count.csv >$OUTPUT_DIR/top_movies_quantity_actors.csv
+
+# Subset genres into a new file
+awk -F',' '{print $14}' $TEMP_DIR/temp.csv >$TEMP_DIR/genres.csv
+awk -F'|' '{for(i=1;i<=NF;i++) count[$i]++} END {for(name in count) print count[name], name}' $TEMP_DIR/genres.csv | sort -nr >$OUTPUT_DIR/genres_count.csv
+
+# Clearing temp
+echo "Clearing temporary files!"
+rm $TEMP_DIR/*
+sleep 2
+echo ""
+
 echo "Sequence completed!"
 exit 0
